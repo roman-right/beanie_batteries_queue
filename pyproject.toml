@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "beanie_batteries_queue"
-version = "0.1.0"
+version = "0.1.1"
 description = "Simple queue system for Beanie"
 readme = "README.md"
 requires-python = ">=3.7,<4.0"
