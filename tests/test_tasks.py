@@ -29,13 +29,17 @@ class TestGeneralCases:
         task = await SimpleTask.find_one({"s": "test"})
         assert task.state == State.FAILED
 
-    @pytest.mark.parametrize("priority1,priority2,result_s", [
-        (Priority.LOW, Priority.MEDIUM, "test2"),
-        (Priority.MEDIUM, Priority.LOW, "test1"),
-        (Priority.MEDIUM, Priority.MEDIUM, "test1"),
-    ])
-    async def test_multiple_tasks_simple_order(self, priority1, priority2,
-                                               result_s):
+    @pytest.mark.parametrize(
+        "priority1,priority2,result_s",
+        [
+            (Priority.LOW, Priority.MEDIUM, "test2"),
+            (Priority.MEDIUM, Priority.LOW, "test1"),
+            (Priority.MEDIUM, Priority.MEDIUM, "test1"),
+        ],
+    )
+    async def test_multiple_tasks_simple_order(
+        self, priority1, priority2, result_s
+    ):
         task1 = SimpleTask(s="test1", priority=priority1)
         await task1.push()
         task2 = SimpleTask(s="test2", priority=priority2)

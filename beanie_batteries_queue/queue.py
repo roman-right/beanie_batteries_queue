@@ -1,9 +1,10 @@
 import asyncio
 from datetime import datetime
 from enum import Enum
-from typing import Type
+from typing import Type, Optional
 
 from beanie import Document
+from beanie.odm.enums import SortDirection
 from beanie.odm.queries.update import UpdateResponse
 from pydantic import Field
 from pymongo import DESCENDING, ASCENDING
@@ -48,7 +49,7 @@ class Task(Document):
             [
                 ("state", ASCENDING),
                 ("priority", DESCENDING),
-                ("created_at", ASCENDING)
+                ("created_at", ASCENDING),
             ]
         ]
 
@@ -56,20 +57,29 @@ class Task(Document):
         await self.save()
 
     @classmethod
-    async def pop(cls) -> "Task":
+    async def pop(cls) -> Optional["Task"]:
         """
         Get the first task from the queue
         :return:
         """
         task = None
-        found_task = await cls.find({"state": State.CREATED}).sort(
-            [("priority", DESCENDING),
-             ("created_at", ASCENDING)]).first_or_none()
+        found_task = (
+            await cls.find({"state": State.CREATED})
+            .sort(
+                [
+                    ("priority", SortDirection.DESCENDING),
+                    ("created_at", SortDirection.ASCENDING),
+                ]
+            )
+            .first_or_none()
+        )
         if found_task is not None:
             task = await cls.find_one(
-                {"_id": found_task.id, "state": State.CREATED}).update(
+                {"_id": found_task.id, "state": State.CREATED}
+            ).update(
                 {"$set": {"state": State.RUNNING}},
-                response_type=UpdateResponse.NEW_DOCUMENT)
+                response_type=UpdateResponse.NEW_DOCUMENT,
+            )
             # check if this task was not taken by another worker
             if task is None:
                 task = await cls.pop()
