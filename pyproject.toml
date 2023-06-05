@@ -56,7 +56,7 @@ exclude = '''
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--cov-report term-missing --cov=beanie --cov-branch --cov-fail-under=85"
+addopts = "--cov-report term-missing --cov=beanie_batteries_queue --cov-branch --cov-fail-under=85"
 testpaths = [
     "tests",
 ]
@@ -75,7 +75,7 @@ module = "toml"
 ignore_missing_imports = true
 
 [tool.pyright]
-include = ["tests/typing", "beanie"]
+include = ["tests/typing", "beanie_batteries_queue"]
 
 [tool.ruff]
 line-length = 79
