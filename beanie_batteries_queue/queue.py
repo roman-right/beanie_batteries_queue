@@ -43,33 +43,67 @@ class Task(Document):
     priority: Priority = Priority.MEDIUM
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
+    class Settings:
+        indexes = [
+            [
+                ("state", ASCENDING),
+                ("priority", DESCENDING),
+                ("created_at", ASCENDING)
+            ]
+        ]
+
     async def push(self):
         await self.save()
 
     @classmethod
-    async def pop(cls):
-        task = await cls.find({"state": State.CREATED}).sort(
+    async def pop(cls) -> "Task":
+        """
+        Get the first task from the queue
+        :return:
+        """
+        task = None
+        found_task = await cls.find({"state": State.CREATED}).sort(
             [("priority", DESCENDING),
              ("created_at", ASCENDING)]).first_or_none()
-        if task is not None:
+        if found_task is not None:
             task = await cls.find_one(
-                {"_id": task.id, "state": State.CREATED}).update(
+                {"_id": found_task.id, "state": State.CREATED}).update(
                 {"$set": {"state": State.RUNNING}},
                 response_type=UpdateResponse.NEW_DOCUMENT)
+            # check if this task was not taken by another worker
+            if task is None:
+                task = await cls.pop()
         return task
 
     @classmethod
     async def is_empty(cls) -> bool:
+        """
+        Check if there are no tasks in the queue
+        :return:
+        """
         return await cls.find_one({"state": State.CREATED}) is None
 
     @classmethod
     def queue(cls, sleep_time: int = 1):
+        """
+        Get queue iterator
+        :param sleep_time:
+        :return:
+        """
         return Queue(cls, sleep_time=sleep_time)
 
     async def finish(self):
+        """
+        Mark task as finished
+        :return:
+        """
         self.state = State.FINISHED
         await self.save()
 
     async def fail(self):
+        """
+        Mark task as failed
+        :return:
+        """
         self.state = State.FAILED
         await self.save()
