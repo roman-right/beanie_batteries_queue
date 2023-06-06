@@ -1,4 +1,10 @@
-from beanie_batteries_queue.queue import Task
+from beanie_batteries_queue.queue import Task, State, Priority, DependencyType
 
-__all__ = ["Task"]
+
+__all__ = [
+    "Task",
+    "State",
+    "Priority",
+    "DependencyType",
+]
 __version__ = "0.1.0"

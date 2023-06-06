@@ -1,7 +1,15 @@
 import pytest
 
 from beanie_batteries_queue.queue import State, Priority
-from tests.tasks import SimpleTask
+from tests.tasks import (
+    SimpleTask,
+    TaskWithDirectDependency,
+    TaskWithAllOfDependency,
+    TaskWithAnyOfDependency,
+    TaskWithOptionalDependency,
+    TaskWithOptionalAllOfDependency,
+    TaskWithOptionalAnyOfDependency,
+)
 
 
 class TestGeneralCases:
@@ -66,3 +74,171 @@ class TestGeneralCases:
 
         await SimpleTask.pop()
         assert await SimpleTask.is_empty()
+
+    async def test_direct_dependency(self):
+        simple_task_1 = SimpleTask(s="test1")
+        await simple_task_1.push()
+
+        task = TaskWithDirectDependency(
+            s="test", direct_dependency=simple_task_1
+        )
+        await task.push()
+
+        found_task = await TaskWithDirectDependency.pop()
+        assert found_task is None
+
+        simple_task_1.state = State.FINISHED
+        await simple_task_1.save()
+
+        found_task = await TaskWithDirectDependency.pop()
+        assert found_task is not None
+        assert found_task.s == "test"
+        assert found_task.state == State.RUNNING
+
+    async def test_optional_direct_dependency(self):
+        task = TaskWithOptionalDependency(s="test")
+        await task.push()
+
+        found_task = await TaskWithOptionalDependency.pop()
+        assert found_task is not None
+        assert found_task.s == "test"
+        assert found_task.state == State.RUNNING
+
+        simple_task_1 = SimpleTask(s="test1")
+        await simple_task_1.push()
+
+        task_2 = TaskWithOptionalDependency(
+            s="test2", optional_dependency=simple_task_1
+        )
+        await task_2.push()
+
+        found_task = await TaskWithOptionalDependency.pop()
+        assert found_task is None
+
+        simple_task_1.state = State.FINISHED
+        await simple_task_1.save()
+
+        found_task = await TaskWithOptionalDependency.pop()
+        assert found_task is not None
+        assert found_task.s == "test2"
+        assert found_task.state == State.RUNNING
+
+    async def test_all_of_dependency(self):
+        simple_task_1 = SimpleTask(s="test1")
+        await simple_task_1.push()
+        simple_task_2 = SimpleTask(s="test2")
+        await simple_task_2.push()
+
+        task = TaskWithAllOfDependency(
+            s="test", all_of_dependency=[simple_task_1, simple_task_2]
+        )
+        await task.push()
+
+        found_task = await TaskWithAllOfDependency.pop()
+        assert found_task is None
+
+        simple_task_1.state = State.FINISHED
+        await simple_task_1.save()
+
+        found_task = await TaskWithAllOfDependency.pop()
+        assert found_task is None
+
+        simple_task_2.state = State.FINISHED
+        await simple_task_2.save()
+
+        found_task = await TaskWithAllOfDependency.pop()
+        assert found_task is not None
+        assert found_task.s == "test"
+        assert found_task.state == State.RUNNING
+
+    async def test_optional_all_of_dependency(self):
+        task = TaskWithOptionalAllOfDependency(s="test")
+        await task.push()
+
+        found_task = await TaskWithOptionalAllOfDependency.pop()
+        assert found_task is not None
+        assert found_task.s == "test"
+        assert found_task.state == State.RUNNING
+
+        simple_task_1 = SimpleTask(s="test1")
+        await simple_task_1.push()
+
+        simple_task_2 = SimpleTask(s="test2")
+        await simple_task_2.push()
+
+        task_2 = TaskWithOptionalAllOfDependency(
+            s="test2",
+            optional_all_of_dependency=[simple_task_1, simple_task_2],
+        )
+        await task_2.push()
+
+        found_task = await TaskWithOptionalAllOfDependency.pop()
+        assert found_task is None
+
+        simple_task_1.state = State.FINISHED
+        await simple_task_1.save()
+
+        found_task = await TaskWithOptionalAllOfDependency.pop()
+        assert found_task is None
+
+        simple_task_2.state = State.FINISHED
+        await simple_task_2.save()
+
+        found_task = await TaskWithOptionalAllOfDependency.pop()
+        assert found_task is not None
+        assert found_task.s == "test2"
+        assert found_task.state == State.RUNNING
+
+    async def test_any_of_dependency(self):
+        simple_task_1 = SimpleTask(s="test1")
+        await simple_task_1.push()
+        simple_task_2 = SimpleTask(s="test2")
+        await simple_task_2.push()
+
+        task = TaskWithAnyOfDependency(
+            s="test", any_of_dependency=[simple_task_1, simple_task_2]
+        )
+        await task.push()
+
+        found_task = await TaskWithAnyOfDependency.pop()
+        assert found_task is None
+
+        simple_task_1.state = State.FINISHED
+        await simple_task_1.save()
+
+        found_task = await TaskWithAnyOfDependency.pop()
+        assert found_task is not None
+        assert found_task.s == "test"
+        assert found_task.state == State.RUNNING
+
+    async def test_optional_any_of_dependency(self):
+        task = TaskWithOptionalAnyOfDependency(s="test")
+        await task.push()
+
+        found_task = await TaskWithOptionalAnyOfDependency.pop()
+        assert found_task is not None
+        assert found_task.s == "test"
+        assert found_task.state == State.RUNNING
+
+        simple_task_1 = SimpleTask(s="test1")
+        await simple_task_1.push()
+
+        simple_task_2 = SimpleTask(s="test2")
+        await simple_task_2.push()
+
+        task_2 = TaskWithOptionalAnyOfDependency(
+            s="test2",
+            optional_any_of_dependency=[simple_task_1, simple_task_2],
+        )
+        await task_2.push()
+
+        found_task = await TaskWithOptionalAnyOfDependency.pop()
+        assert found_task is None
+
+        simple_task_1.state = State.FINISHED
+        await simple_task_1.save()
+
+        found_task = await TaskWithOptionalAnyOfDependency.pop()
+        assert found_task is not None
+        assert found_task.s == "test2"
+        assert found_task.state == State.RUNNING
