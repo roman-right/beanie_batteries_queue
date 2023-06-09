@@ -57,7 +57,9 @@ class Task(Document):
                 ("state", ASCENDING),
                 ("priority", DESCENDING),
                 ("created_at", ASCENDING),
-            ]
+            ],
+            # expire after 1 day
+            [("created_at", ASCENDING), ("expireAfterSeconds", 86400)],
         ]
 
     @classmethod
