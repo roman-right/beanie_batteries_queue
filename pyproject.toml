@@ -1,23 +1,41 @@
-[tool.poetry]
-name = "beanie_batteries_queue"
-version = "0.1.0"
-description = ""
-authors = []
-readme = "README.md"
-packages = [{include = "beanie_batteries_queue"}]
-
-[tool.poetry.dependencies]
-python = ">=3.7,<4.0"
-beanie = "^1.19.1"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.3.1"
-pytest-asyncio = "^0.21.0"
-pytest-cov = "^4.1.0"
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "beanie_batteries_queue"
+version = "0.2.0"
+description = "Simple queue system for Beanie"
+readme = "README.md"
+requires-python = ">=3.7,<4.0"
+license = { file="LICENSE" }
+authors = [
+    {name = "Roman Right", email = "roman-right@protonmail.com"}
+]
+keywords = ["mongodb", "odm", "orm", "pydantic", "mongo", "async", "python", "beanie", "queue", "beanie-batteries-queue"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+]
+dependencies = [
+    "beanie==1.20.0b1",
+]
+
+[project.optional-dependencies]
+test = [
+    "pre-commit>=2.3.0",
+    "pytest>=6.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=2.8.1",
+    "dnspython>=2.1.0",
+    "flake8>=3",
+    "pyright>=0",
+]
+
+[project.urls]
+homepage = "https://github.com/roman-right/beanie_batteries_queue"
+repository = "https://github.com/roman-right/beanie_batteries_queue"
+
+# TOOLS
 
 [tool.black]
 line-length = 79
@@ -35,6 +53,29 @@ exclude = '''
   | dist
 )/
 '''
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--cov-report term-missing --cov=beanie_batteries_queue --cov-branch --cov-fail-under=85"
+testpaths = [
+    "tests",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+]
+asyncio_mode = "auto"
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "toml"
+ignore_missing_imports = true
+
+[tool.pyright]
+include = ["tests/typing", "beanie_batteries_queue"]
 
 [tool.ruff]
 line-length = 79
@@ -78,16 +119,3 @@ target-version = "py310"
 [tool.ruff.mccabe]
 # Unlike Flake8, default to a complexity level of 10.
 max-complexity = 10
-
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "--cov-report term-missing --cov=beanie_batteries_queue --cov-branch --cov-fail-under=85"
-testpaths = [
-    "tests",
-]
-filterwarnings = [
-    "error",
-    "ignore::DeprecationWarning",
-    "ignore::UserWarning",
-]
-asyncio_mode = "auto"

@@ -3,7 +3,15 @@ from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseSettings
 
-from tests.tasks import SimpleTask
+from tests.tasks import (
+    SimpleTask,
+    TaskWithDirectDependency,
+    TaskWithAllOfDependency,
+    TaskWithAnyOfDependency,
+    TaskWithOptionalDependency,
+    TaskWithOptionalAllOfDependency,
+    TaskWithOptionalAnyOfDependency,
+)
 
 
 class Settings(BaseSettings):
@@ -30,6 +38,12 @@ def db(cli, settings):
 async def init(db):
     models = [
         SimpleTask,
+        TaskWithDirectDependency,
+        TaskWithAllOfDependency,
+        TaskWithAnyOfDependency,
+        TaskWithOptionalDependency,
+        TaskWithOptionalAllOfDependency,
+        TaskWithOptionalAnyOfDependency,
     ]
     await init_beanie(
         database=db,
