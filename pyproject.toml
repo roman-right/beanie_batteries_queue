@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "beanie_batteries_queue"
-version = "0.2.0"
+version = "0.3.0"
 description = "Simple queue system for Beanie"
 readme = "README.md"
 requires-python = ">=3.7,<4.0"
@@ -17,7 +17,7 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
 ]
 dependencies = [
-    "beanie==1.20.0b1",
+    "beanie>=1.20",
 ]
 
 [project.optional-dependencies]

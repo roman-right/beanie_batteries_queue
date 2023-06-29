@@ -3,7 +3,7 @@ from typing import List, Optional
 from beanie import Link
 from pydantic import Field
 
-from beanie_batteries_queue.queue import Task, DependencyType
+from beanie_batteries_queue import Task, DependencyType
 
 
 class SimpleTask(Task):
