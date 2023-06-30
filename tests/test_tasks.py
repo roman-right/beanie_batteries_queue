@@ -1,6 +1,6 @@
 import pytest
 
-from beanie_batteries_queue.queue import State, Priority
+from beanie_batteries_queue import State, Priority
 from tests.tasks import (
     SimpleTask,
     TaskWithDirectDependency,
