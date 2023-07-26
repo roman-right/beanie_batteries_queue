@@ -1,13 +1,31 @@
 import asyncio
 from datetime import datetime
 from enum import Enum
-from typing import Type, Optional, Dict, ClassVar
+from typing import Type, Optional, Dict, ClassVar, Union
 
 from beanie import Document
 from beanie.odm.enums import SortDirection
 from beanie.odm.queries.update import UpdateResponse
+
 from pydantic import Field
 from pymongo import DESCENDING, ASCENDING
+
+
+def make_find_category(category: Optional[Union[str, list, set]]):
+    if not category:
+        return category
+
+    normalized_category = category
+
+    if isinstance(category, str):
+        normalized_category = [category]
+
+    if isinstance(category, set):
+        normalized_category = [
+            *category,
+        ]
+
+    return {"$in": normalized_category}
 
 
 class State(str, Enum):
@@ -30,18 +48,24 @@ class DependencyType(str, Enum):
 
 
 class Queue:
-    def __init__(self, task_model: Type["Task"], sleep_time: int = 1):
+    def __init__(
+        self,
+        task_model: Type["Task"],
+        sleep_time: int = 1,
+        category: Optional[Union[str, list, set]] = None,
+    ):
         self.task_model = task_model
         self.sleep_time = sleep_time
+        self.category = category
 
     def __aiter__(self):
         return self
 
     async def __anext__(self):
-        task = await self.task_model.pop()
+        task = await self.task_model.pop(category=self.category)
         while task is None:
             await asyncio.sleep(self.sleep_time)
-            task = await self.task_model.pop()
+            task = await self.task_model.pop(category=self.category)
         return task
 
 
@@ -50,6 +74,7 @@ class Task(Document):
     priority: Priority = Priority.MEDIUM
     created_at: datetime = Field(default_factory=datetime.utcnow)
     _dependency_fields: ClassVar[Optional[Dict[str, DependencyType]]] = None
+    category: Optional[str] = Field(description="Category of Task")
 
     class Settings:
         indexes = [
@@ -57,6 +82,7 @@ class Task(Document):
                 ("state", ASCENDING),
                 ("priority", DESCENDING),
                 ("created_at", ASCENDING),
+                ("category", ASCENDING),
             ],
             # expire after 1 day
             [("created_at", ASCENDING), ("expireAfterSeconds", 86400)],
@@ -76,13 +102,15 @@ class Task(Document):
         await self.save()
 
     @classmethod
-    async def pop(cls) -> Optional["Task"]:
+    async def pop(
+        cls, category: Optional[Union[str, list, set]] = None
+    ) -> Optional["Task"]:
         """
         Get the first task from the queue
         :return:
         """
         task = None
-        find_query = cls.make_find_query()
+        find_query = cls.make_find_query(category=category)
         found_task = (
             await cls.find(find_query, fetch_links=True)
             .sort(
@@ -95,19 +123,26 @@ class Task(Document):
         )
         if found_task is not None:
             task = await cls.find_one(
-                {"_id": found_task.id, "state": State.CREATED}
+                {
+                    "_id": found_task.id,
+                    "state": State.CREATED,
+                    "category": make_find_category(category),
+                }
             ).update(
                 {"$set": {"state": State.RUNNING}},
                 response_type=UpdateResponse.NEW_DOCUMENT,
             )
             # check if this task was not taken by another worker
             if task is None:
-                task = await cls.pop()
+                task = await cls.pop(category=category)
         return task
 
     @classmethod
-    def make_find_query(cls):
-        queries = [{"state": State.CREATED}]
+    def make_find_query(cls, category: Optional[Union[str, list, set]] = None):
+        queries = [
+            {"state": State.CREATED},
+            {"category": make_find_category(category)},
+        ]
         if cls._dependency_fields is not None:
             for (
                 dependency_field,
@@ -151,21 +186,36 @@ class Task(Document):
             }
 
     @classmethod
-    async def is_empty(cls) -> bool:
+    async def is_empty(
+        cls, category: Optional[Union[str, list, set]] = None
+    ) -> bool:
         """
         Check if there are no tasks in the queue
         :return:
         """
-        return await cls.find_one({"state": State.CREATED}) is None
+        return (
+            await cls.find_one(
+                {
+                    "state": State.CREATED,
+                    "category": make_find_category(category),
+                }
+            )
+            is None
+        )
 
     @classmethod
-    def queue(cls, sleep_time: int = 1):
+    def queue(
+        cls,
+        sleep_time: int = 1,
+        category: Optional[Union[str, list, set]] = None,
+    ):
         """
         Get queue iterator
         :param sleep_time:
+        :param category:
         :return:
         """
-        return Queue(cls, sleep_time=sleep_time)
+        return Queue(cls, sleep_time=sleep_time, category=category)
 
     async def finish(self):
         """
