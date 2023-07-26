@@ -14,14 +14,16 @@ from pymongo import DESCENDING, ASCENDING
 def make_find_category(category: Optional[Union[str, list, set]]):
     if not category:
         return category
-    
+
     normalized_category = category
 
     if isinstance(category, str):
         normalized_category = [category]
 
     if isinstance(category, set):
-        normalized_category = [*category, ]
+        normalized_category = [
+            *category,
+        ]
 
     return {"$in": normalized_category}
 
@@ -46,7 +48,12 @@ class DependencyType(str, Enum):
 
 
 class Queue:
-    def __init__(self, task_model: Type["Task"], sleep_time: int = 1, category: Optional[Union[str, list]] = None):
+    def __init__(
+        self,
+        task_model: Type["Task"],
+        sleep_time: int = 1,
+        category: Optional[Union[str, list, set]] = None,
+    ):
         self.task_model = task_model
         self.sleep_time = sleep_time
         self.category = category
@@ -95,7 +102,9 @@ class Task(Document):
         await self.save()
 
     @classmethod
-    async def pop(cls, category: Optional[Union[str, list, set]] = None) -> Optional["Task"]:
+    async def pop(
+        cls, category: Optional[Union[str, list, set]] = None
+    ) -> Optional["Task"]:
         """
         Get the first task from the queue
         :return:
@@ -114,7 +123,11 @@ class Task(Document):
         )
         if found_task is not None:
             task = await cls.find_one(
-                {"_id": found_task.id, "state": State.CREATED, "category": make_find_category(category)}
+                {
+                    "_id": found_task.id,
+                    "state": State.CREATED,
+                    "category": make_find_category(category),
+                }
             ).update(
                 {"$set": {"state": State.RUNNING}},
                 response_type=UpdateResponse.NEW_DOCUMENT,
@@ -173,15 +186,29 @@ class Task(Document):
             }
 
     @classmethod
-    async def is_empty(cls, category: Optional[Union[str, list, set]] = None) -> bool:
+    async def is_empty(
+        cls, category: Optional[Union[str, list, set]] = None
+    ) -> bool:
         """
         Check if there are no tasks in the queue
         :return:
         """
-        return await cls.find_one({"state": State.CREATED, "category": make_find_category(category)}) is None
+        return (
+            await cls.find_one(
+                {
+                    "state": State.CREATED,
+                    "category": make_find_category(category),
+                }
+            )
+            is None
+        )
 
     @classmethod
-    def queue(cls, sleep_time: int = 1, category: Optional[Union[str, list, set]] = None):
+    def queue(
+        cls,
+        sleep_time: int = 1,
+        category: Optional[Union[str, list, set]] = None,
+    ):
         """
         Get queue iterator
         :param sleep_time:
