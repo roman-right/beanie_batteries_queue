@@ -1,13 +1,44 @@
+import asyncio
+from time import sleep
 from typing import List, Optional
 
 from beanie import Link
 from pydantic import Field
 
 from beanie_batteries_queue import Task, DependencyType
+from beanie_batteries_queue.scheduled_task import ScheduledTask
 
 
 class SimpleTask(Task):
     s: str
+
+    async def run(self):
+        self.s = self.s.upper()
+        await self.save()
+
+
+class FailingTask(Task):
+    s: str
+
+    async def run(self):
+        raise Exception("Failing task")
+
+
+class AnotherSimpleTask(Task):
+    s: str
+
+    async def run(self):
+        self.s = self.s.upper()
+        await self.save()
+
+
+class SimpleTaskWithLongProcessingTime(Task):
+    s: str
+
+    async def run(self):
+        sleep(5)  # blocking operation
+        self.s = self.s.upper()
+        await self.save()
 
 
 class TaskWithDirectDependency(Task):
@@ -50,3 +81,7 @@ class TaskWithOptionalAnyOfDependency(Task):
     optional_any_of_dependency: Optional[List[Link[SimpleTask]]] = Field(
         dependency_type=DependencyType.ANY_OF
     )
+
+
+class SimpleScheduledTask(ScheduledTask):
+    s: str

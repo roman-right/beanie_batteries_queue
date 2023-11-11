@@ -1,4 +1,4 @@
-from beanie_batteries_queue.queue import Task, State, Priority, DependencyType
+from beanie_batteries_queue.task import Task, State, Priority, DependencyType
 
 
 __all__ = [

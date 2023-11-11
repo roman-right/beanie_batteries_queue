@@ -1,7 +1,7 @@
 import pytest as pytest
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 from tests.tasks import (
     SimpleTask,
@@ -11,6 +11,7 @@ from tests.tasks import (
     TaskWithOptionalDependency,
     TaskWithOptionalAllOfDependency,
     TaskWithOptionalAnyOfDependency,
+    SimpleScheduledTask, AnotherSimpleTask,
 )
 
 
@@ -44,6 +45,8 @@ async def init(db):
         TaskWithOptionalDependency,
         TaskWithOptionalAllOfDependency,
         TaskWithOptionalAnyOfDependency,
+        SimpleScheduledTask,
+        AnotherSimpleTask,
     ]
     await init_beanie(
         database=db,
