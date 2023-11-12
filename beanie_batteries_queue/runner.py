@@ -2,6 +2,7 @@ import asyncio
 import multiprocessing
 from multiprocessing import Process
 from multiprocessing.synchronize import Event
+from time import sleep
 from typing import List, Type
 
 from beanie_batteries_queue.task import Task
@@ -12,7 +13,7 @@ class Runner:
     def __init__(
         self,
         task_classes: List[Type[Task]],
-        worker_count: int,
+        worker_count: int = 1,
         sleep_time: int = 1,
     ):
         """
@@ -28,9 +29,11 @@ class Runner:
         self.processes: List[Process] = []
         self.stop_events: List[Event] = []
 
-    def start(self):
+    def start(self, run_indefinitely: bool = True):
         """
         Start the task runner.
+
+        :param run_indefinitely: Run the runner while all tasks are alive.
         """
         for _ in range(self.worker_count):
             stop_event = multiprocessing.Event()
@@ -41,6 +44,29 @@ class Runner:
             print(f"Started worker process {process.pid}")
             self.processes.append(process)
             self.stop_events.append(stop_event)
+        if run_indefinitely:
+            self.inifinte_status_check()
+
+    def check_status(self):
+        """
+        Check the status of the task runner.
+        """
+        return any([process.is_alive() for process in self.processes])
+
+    def inifinte_status_check(self):
+        """
+        Check the status of the task runner.
+        """
+        while True:
+            try:
+                status = self.check_status()
+                if not status:
+                    break
+                sleep(1)
+            except KeyboardInterrupt:
+                print("Keyboard interrupt detected. Stopping workers...")
+                self.stop()
+                break
 
     def run_worker(self, stop_event):
         """

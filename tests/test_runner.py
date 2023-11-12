@@ -24,7 +24,7 @@ class TestRunner:
         runner = Runner([SimpleTask, AnotherSimpleTask], worker_count=2)
 
         # Start the runner
-        runner.start()
+        runner.start(infinite_status_check=False)
         await asyncio.sleep(
             2
         )  # Allow some time for workers to start and process tasks
@@ -50,7 +50,7 @@ class TestRunner:
 
         # Initialize and start the runner with multiple workers
         runner = Runner([SimpleTaskWithLongProcessingTime], worker_count=5)
-        runner.start()
+        runner.start(run_indefinitely=False)
         await asyncio.sleep(6)  # Allow time for parallel processing
 
         # Stop the runner
@@ -63,3 +63,25 @@ class TestRunner:
                     {"s": f"task{i}".upper()}
                 )
             ).state == State.FINISHED
+
+    async def test_status_check(self):
+        # Set up tasks for testing
+        task1 = SimpleTask(s="task1")
+        await task1.push()
+        task2 = AnotherSimpleTask(s="task2")
+        await task2.push()
+
+        # Initialize the runner with two worker processes
+        runner = Runner([SimpleTask, AnotherSimpleTask], worker_count=2)
+
+        # Start the runner
+        runner.start(run_indefinitely=False)
+        await asyncio.sleep(2)
+        status = runner.check_status()
+        assert status is True
+
+        # Stop the runner
+        runner.stop()
+
+        status = runner.check_status()
+        assert status is False
