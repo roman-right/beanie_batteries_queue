@@ -14,6 +14,13 @@ class Queue:
         sleep_time: int = 1,
         stop_event: Optional[Event] = None,
     ):
+        """
+        Initialize the Queue.
+
+        :param task_model: Task model class
+        :param sleep_time: Sleep time between iterations
+        :param stop_event: Event to stop the queue
+        """
         self.task_model = task_model
         self.sleep_time = sleep_time
         self.started = False

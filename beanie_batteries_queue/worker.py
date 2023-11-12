@@ -19,6 +19,8 @@ class Worker:
         Initialize the Worker.
 
         :param task_classes: List of Task classes to run tasks from.
+        :param sleep_time: Time to sleep between iterations.
+        :param stop_event: Event to stop the worker.
         """
         self.task_classes = task_classes
         self.queues = [
