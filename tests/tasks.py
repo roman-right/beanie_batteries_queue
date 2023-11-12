@@ -1,8 +1,8 @@
-import asyncio
 from time import sleep
 from typing import List, Optional
 
 from beanie import Link
+from beanie.odm.registry import DocsRegistry
 from pydantic import Field
 
 from beanie_batteries_queue import Task, DependencyType
@@ -13,8 +13,10 @@ class SimpleTask(Task):
     s: str
 
     async def run(self):
+        print("Run simple task")
         self.s = self.s.upper()
         await self.save()
+        print(DocsRegistry._registry)
 
 
 class FailingTask(Task):

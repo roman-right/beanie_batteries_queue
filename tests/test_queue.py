@@ -28,8 +28,12 @@ class TestQueue:
         queue.stop()
         await task
 
-        assert (await SimpleTask.find_one(SimpleTask.s == "task1".upper())).state == State.FINISHED
-        assert (await SimpleTask.find_one(SimpleTask.s == "task2".upper())).state == State.FINISHED
+        assert (
+            await SimpleTask.find_one(SimpleTask.s == "task1".upper())
+        ).state == State.FINISHED
+        assert (
+            await SimpleTask.find_one(SimpleTask.s == "task2".upper())
+        ).state == State.FINISHED
 
     async def test_queue_handle_task_failures(self):
         task = FailingTask(s="fail")
@@ -42,13 +46,15 @@ class TestQueue:
         queue.stop()
         await task
 
-        assert (await FailingTask.find_one({"s": "fail"})).state == State.FAILED
+        assert (
+            await FailingTask.find_one({"s": "fail"})
+        ).state == State.FAILED
 
     async def test_queue_start_stop(self):
         queue = SimpleTask.queue()
         task = asyncio.create_task(queue.start())
         await asyncio.sleep(1)  # Let the queue start
-        assert queue.running == True
+        assert queue.running is True
         queue.stop()
         await task
-        assert queue.running == False
+        assert queue.running is False

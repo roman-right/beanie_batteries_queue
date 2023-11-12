@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest as pytest
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -11,7 +13,9 @@ from tests.tasks import (
     TaskWithOptionalDependency,
     TaskWithOptionalAllOfDependency,
     TaskWithOptionalAnyOfDependency,
-    SimpleScheduledTask, AnotherSimpleTask,
+    SimpleScheduledTask,
+    AnotherSimpleTask,
+    SimpleTaskWithLongProcessingTime,
 )
 
 
@@ -27,7 +31,9 @@ def settings():
 
 @pytest.fixture()
 def cli(settings):
-    return AsyncIOMotorClient(settings.mongodb_dsn)
+    client = AsyncIOMotorClient(settings.mongodb_dsn)
+    client.get_io_loop = asyncio.get_running_loop
+    return client
 
 
 @pytest.fixture()
@@ -47,6 +53,7 @@ async def init(db):
         TaskWithOptionalAnyOfDependency,
         SimpleScheduledTask,
         AnotherSimpleTask,
+        SimpleTaskWithLongProcessingTime,
     ]
     await init_beanie(
         database=db,

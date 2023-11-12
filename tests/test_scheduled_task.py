@@ -7,7 +7,9 @@ from tests.tasks import SimpleScheduledTask
 
 class TestScheduledTask:
     async def test_simple_task(self):
-        task = SimpleScheduledTask(s="test", run_at=datetime.utcnow() + timedelta(seconds=2))
+        task = SimpleScheduledTask(
+            s="test", run_at=datetime.utcnow() + timedelta(seconds=2)
+        )
         assert task.run_at > datetime.utcnow()
         await task.push()
 

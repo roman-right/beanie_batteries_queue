@@ -27,9 +27,10 @@ class TestWorker:
         worker.stop()
         await task
 
-        print(await AnotherSimpleTask.find_one({"s": "task2".upper()}))
-        print(type(await AnotherSimpleTask.find_one({"s": "task2".upper()})))
-
         # Verify that tasks have been processed
-        assert (await SimpleTask.find_one({"s": "task1".upper()})).state == State.FINISHED
-        assert (await AnotherSimpleTask.find_one({"s": "task2".upper()})).state == State.FINISHED
+        assert (
+            await SimpleTask.find_one({"s": "task1".upper()})
+        ).state == State.FINISHED
+        assert (
+            await AnotherSimpleTask.find_one({"s": "task2".upper()})
+        ).state == State.FINISHED

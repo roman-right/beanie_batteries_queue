@@ -4,7 +4,11 @@ import asyncio
 from beanie_batteries_queue.runner import Runner
 
 from beanie_batteries_queue import State
-from tests.tasks import SimpleTask, AnotherSimpleTask, SimpleTaskWithLongProcessingTime
+from tests.tasks import (
+    SimpleTask,
+    AnotherSimpleTask,
+    SimpleTaskWithLongProcessingTime,
+)
 
 
 @pytest.mark.asyncio
@@ -21,30 +25,41 @@ class TestRunner:
 
         # Start the runner
         runner.start()
-        await asyncio.sleep(2)  # Allow some time for workers to start and process tasks
+        await asyncio.sleep(
+            2
+        )  # Allow some time for workers to start and process tasks
 
         # Stop the runner
         runner.stop()
 
         # Verify that tasks have been processed
-        assert (await SimpleTask.find_one({"s": "task1"})).state == State.FINISHED
-        assert (await AnotherSimpleTask.find_one({"s": "task2"})).state == State.FINISHED
+        assert (
+            await SimpleTask.find_one({"s": "task1".upper()})
+        ).state == State.FINISHED
+        assert (
+            await AnotherSimpleTask.find_one({"s": "task2".upper()})
+        ).state == State.FINISHED
 
     async def test_runner_processes_tasks_in_parallel(self):
         # Set up multiple tasks
-        tasks = [SimpleTaskWithLongProcessingTime(s=f"task{i}") for i in range(5)]
+        tasks = [
+            SimpleTaskWithLongProcessingTime(s=f"task{i}") for i in range(5)
+        ]
         for task in tasks:
             await task.push()
 
         # Initialize and start the runner with multiple workers
-        runner = Runner([SimpleTask], worker_count=5, check_interval=1)
-        task = asyncio.create_task(runner.start())
+        runner = Runner([SimpleTaskWithLongProcessingTime], worker_count=5)
+        runner.start()
         await asyncio.sleep(6)  # Allow time for parallel processing
 
         # Stop the runner
         runner.stop()
-        await task
 
         # Verify that all tasks have been processed
         for i in range(5):
-            assert (await SimpleTask.find_one({"s": f"task{i}".upper()})).state == State.FINISHED
+            assert (
+                await SimpleTaskWithLongProcessingTime.find_one(
+                    {"s": f"task{i}".upper()}
+                )
+            ).state == State.FINISHED

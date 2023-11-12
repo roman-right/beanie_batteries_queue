@@ -1,6 +1,6 @@
-import multiprocessing
 from datetime import datetime
 from enum import Enum
+from multiprocessing.synchronize import Event
 from typing import Optional, Dict, ClassVar
 
 from beanie import Document
@@ -55,7 +55,9 @@ class Task(Document):
             if get_extra_field_info(field, "dependency_type"):
                 if cls._dependency_fields is None:
                     cls._dependency_fields = {}
-                cls._dependency_fields[name] = get_extra_field_info(field, "dependency_type")
+                cls._dependency_fields[name] = get_extra_field_info(
+                    field, "dependency_type"
+                )
 
     async def push(self):
         await self.save()
@@ -78,6 +80,7 @@ class Task(Document):
             )
             .first_or_none()
         )
+
         if found_task is not None:
             task = await cls.find_one(
                 {"_id": found_task.id, "state": State.CREATED}
@@ -95,8 +98,8 @@ class Task(Document):
         queries = [{"state": State.CREATED}]
         if cls._dependency_fields is not None:
             for (
-                    dependency_field,
-                    dependency_type,
+                dependency_field,
+                dependency_type,
             ) in cls._dependency_fields.items():
                 queries.append(
                     cls.make_dependency_query(
@@ -107,7 +110,7 @@ class Task(Document):
 
     @staticmethod
     def make_dependency_query(
-            dependency_field: str, dependency_type: DependencyType
+        dependency_field: str, dependency_type: DependencyType
     ):
         if dependency_type == DependencyType.ALL_OF:
             # TODO this looks tricky
@@ -144,7 +147,11 @@ class Task(Document):
         return await cls.find_one({"state": State.CREATED}) is None
 
     @classmethod
-    def queue(cls, sleep_time: int = 1, stop_event: Optional[multiprocessing.Event] = None):
+    def queue(
+        cls,
+        sleep_time: int = 1,
+        stop_event: Optional[Event] = None,
+    ):
         """
         Get queue iterator
         :param sleep_time:

@@ -1,5 +1,7 @@
 import asyncio
 import multiprocessing
+from multiprocessing import Process
+from multiprocessing.synchronize import Event
 from typing import List, Type
 
 from beanie_batteries_queue.task import Task
@@ -16,8 +18,8 @@ class Runner:
         """
         self.task_classes = task_classes
         self.worker_count = worker_count
-        self.processes = []
-        self.stop_events = []
+        self.processes: List[Process] = []
+        self.stop_events: List[Event] = []
 
     def start(self):
         """
@@ -25,8 +27,11 @@ class Runner:
         """
         for _ in range(self.worker_count):
             stop_event = multiprocessing.Event()
-            process = multiprocessing.Process(target=self.run_worker, args=(stop_event,))
+            process = multiprocessing.Process(
+                target=self.run_worker, args=(stop_event,)
+            )
             process.start()
+            print(f"Started worker process {process.pid}")
             self.processes.append(process)
             self.stop_events.append(stop_event)
 
@@ -35,6 +40,7 @@ class Runner:
         Set up an asyncio event loop and run the worker.
         """
         loop = asyncio.new_event_loop()
+        loop.custom_id = multiprocessing.current_process().pid
         asyncio.set_event_loop(loop)
 
         worker = Worker(self.task_classes, stop_event)
@@ -45,6 +51,7 @@ class Runner:
         """
         Stop the task runner.
         """
+        print("Stopping workers...")
         # Signal each worker to stop
         for stop_event in self.stop_events:
             stop_event.set()

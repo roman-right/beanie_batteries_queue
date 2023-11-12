@@ -21,7 +21,9 @@ class ScheduledTask(Task):
         task = None
         now = datetime.utcnow()
         find_query = cls.make_find_query()
-        find_query["$and"].append({"run_at": {"$lte": now}})  # Only select tasks that are due
+        find_query["$and"].append(
+            {"run_at": {"$lte": now}}
+        )  # Only select tasks that are due
         found_task = (
             await cls.find(find_query, fetch_links=True)
             .sort(

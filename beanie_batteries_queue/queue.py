@@ -1,5 +1,5 @@
 import asyncio
-import multiprocessing
+from multiprocessing.synchronize import Event
 from typing import TYPE_CHECKING, Optional
 from typing import Type
 
@@ -8,8 +8,12 @@ if TYPE_CHECKING:
 
 
 class Queue:
-    def __init__(self, task_model: Type["Task"], sleep_time: int = 1,
-                 stop_event: Optional[multiprocessing.Event] = None):
+    def __init__(
+        self,
+        task_model: Type["Task"],
+        sleep_time: int = 1,
+        stop_event: Optional[Event] = None,
+    ):
         self.task_model = task_model
         self.sleep_time = sleep_time
         self.started = False
@@ -41,7 +45,6 @@ class Queue:
         """
         Run task
         """
-        print("STart queue")
         if self.started:
             raise RuntimeError("Queue is already started")
         self.started = True
@@ -57,5 +60,4 @@ class Queue:
         """
         Stop the task runner.
         """
-        print("stop")
         self.running = False
