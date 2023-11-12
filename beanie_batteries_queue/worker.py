@@ -12,6 +12,7 @@ class Worker:
     def __init__(
         self,
         task_classes: List[Type[Task]],
+        sleep_time: int = 1,
         stop_event: Optional[Event] = None,
     ):
         """
@@ -21,7 +22,8 @@ class Worker:
         """
         self.task_classes = task_classes
         self.queues = [
-            task.queue(stop_event=stop_event) for task in self.task_classes
+            task.queue(sleep_time=sleep_time, stop_event=stop_event)
+            for task in self.task_classes
         ]
         self.stop_event = stop_event
 

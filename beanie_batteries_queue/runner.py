@@ -9,15 +9,22 @@ from beanie_batteries_queue.worker import Worker
 
 
 class Runner:
-    def __init__(self, task_classes: List[Type[Task]], worker_count: int):
+    def __init__(
+        self,
+        task_classes: List[Type[Task]],
+        worker_count: int,
+        sleep_time: int = 1,
+    ):
         """
         Initialize the Runner.
 
         :param task_classes: List of Task classes to run tasks from.
         :param worker_count: Number of concurrent workers.
+        :param sleep_time: Time to sleep between iterations.
         """
         self.task_classes = task_classes
         self.worker_count = worker_count
+        self.sleep_time = sleep_time
         self.processes: List[Process] = []
         self.stop_events: List[Event] = []
 
@@ -43,7 +50,11 @@ class Runner:
         loop.custom_id = multiprocessing.current_process().pid
         asyncio.set_event_loop(loop)
 
-        worker = Worker(self.task_classes, stop_event)
+        worker = Worker(
+            self.task_classes,
+            sleep_time=self.sleep_time,
+            stop_event=stop_event,
+        )
         loop.run_until_complete(worker.start())
         loop.close()
 
