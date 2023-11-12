@@ -19,10 +19,9 @@ class ScheduledTask(Task):
         :return:
         """
         task = None
-        now = datetime.utcnow()
         find_query = cls.make_find_query()
         find_query["$and"].append(
-            {"run_at": {"$lte": now}}
+            {"run_at": {"$lte": datetime.utcnow()}}
         )  # Only select tasks that are due
         found_task = (
             await cls.find(find_query, fetch_links=True)
@@ -46,11 +45,12 @@ class ScheduledTask(Task):
 
             # Reschedule task if it has an interval
             if task and task.interval is not None:
-                new_time = now + timedelta(seconds=task.interval)
-                await cls(
-                    **task.model_dump(exclude={"_id", "run_at", "state"}),
-                    run_at=new_time
-                ).save()
+                new_time = task.run_at + timedelta(seconds=task.interval)
+                new_task = cls(
+                    **task.model_dump(exclude={"id", "run_at", "state"}),
+                    run_at=new_time,
+                )
+                await new_task.push()
 
             if task is None:
                 task = await cls.pop()

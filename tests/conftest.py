@@ -16,6 +16,7 @@ from tests.tasks import (
     SimpleScheduledTask,
     AnotherSimpleTask,
     SimpleTaskWithLongProcessingTime,
+    ScheduledTaskWithInterval,
 )
 
 
@@ -54,6 +55,7 @@ async def init(db):
         SimpleScheduledTask,
         AnotherSimpleTask,
         SimpleTaskWithLongProcessingTime,
+        ScheduledTaskWithInterval,
     ]
     await init_beanie(
         database=db,

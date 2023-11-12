@@ -87,3 +87,8 @@ class TaskWithOptionalAnyOfDependency(Task):
 
 class SimpleScheduledTask(ScheduledTask):
     s: str
+
+
+class ScheduledTaskWithInterval(ScheduledTask):
+    s: str
+    interval: int = 5
