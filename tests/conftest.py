@@ -3,7 +3,6 @@ import asyncio
 import pytest as pytest
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic_settings import BaseSettings
 
 from tests.tasks import (
     SimpleTask,
@@ -18,6 +17,13 @@ from tests.tasks import (
     SimpleTaskWithLongProcessingTime,
     ScheduledTaskWithInterval,
 )
+
+from beanie.odm.utils.pydantic import IS_PYDANTIC_V2
+
+if IS_PYDANTIC_V2:
+    from pydantic_settings import BaseSettings
+else:
+    from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):

@@ -30,7 +30,6 @@ classifiers = [
 ]
 dependencies = [
     "beanie>=1.23.3",
-    "pydantic>=2",
 ]
 
 [project.optional-dependencies]

@@ -48,7 +48,7 @@ class Runner:
             self.processes.append(process)
             self.stop_events.append(stop_event)
         if run_indefinitely:
-            self.inifinte_status_check()
+            self.infinite_status_check()
 
     def check_status(self):
         """
@@ -56,7 +56,7 @@ class Runner:
         """
         return any([process.is_alive() for process in self.processes])
 
-    def inifinte_status_check(self):
+    def infinite_status_check(self):
         """
         Check the status of the task runner.
         """

@@ -24,7 +24,7 @@ class TestRunner:
         runner = Runner([SimpleTask, AnotherSimpleTask], worker_count=2)
 
         # Start the runner
-        runner.start(infinite_status_check=False)
+        runner.start(run_indefinitely=False)
         await asyncio.sleep(
             2
         )  # Allow some time for workers to start and process tasks
