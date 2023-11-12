@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import multiprocessing
 from multiprocessing import Process
 from multiprocessing.synchronize import Event
@@ -7,6 +8,8 @@ from typing import List, Type
 
 from beanie_batteries_queue.task import Task
 from beanie_batteries_queue.worker import Worker
+
+logger = logging.getLogger(__name__)
 
 
 class Runner:
@@ -41,7 +44,7 @@ class Runner:
                 target=self.run_worker, args=(stop_event,)
             )
             process.start()
-            print(f"Started worker process {process.pid}")
+            logger.info(f"Started worker process {process.pid}")
             self.processes.append(process)
             self.stop_events.append(stop_event)
         if run_indefinitely:
@@ -64,7 +67,7 @@ class Runner:
                     break
                 sleep(1)
             except KeyboardInterrupt:
-                print("Keyboard interrupt detected. Stopping workers...")
+                logger.info("Keyboard interrupt detected")
                 self.stop()
                 break
 
@@ -88,7 +91,7 @@ class Runner:
         """
         Stop the task runner.
         """
-        print("Stopping workers...")
+        logger.info("Stopping workers...")
         # Signal each worker to stop
         for stop_event in self.stop_events:
             stop_event.set()
