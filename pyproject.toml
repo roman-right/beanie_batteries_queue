@@ -4,8 +4,8 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "beanie_batteries_queue"
-version = "0.3.0"
-description = "Simple queue system for Beanie"
+version = "0.4.0"
+description = "Advanced queue system for MongoDB with Beanie ODM"
 readme = "README.md"
 requires-python = ">=3.7,<4.0"
 license = { file="LICENSE" }
@@ -15,9 +15,21 @@ authors = [
 keywords = ["mongodb", "odm", "orm", "pydantic", "mongo", "async", "python", "beanie", "queue", "beanie-batteries-queue"]
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "Topic :: Database",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Object Brokering",
+    "Topic :: System :: Distributed Computing",
+    "Typing :: Typed",
 ]
 dependencies = [
-    "beanie>=1.20",
+    "beanie>=1.23.4",
 ]
 
 [project.optional-dependencies]
@@ -29,6 +41,7 @@ test = [
     "dnspython>=2.1.0",
     "flake8>=3",
     "pyright>=0",
+    "pydantic-settings>=2.0",
 ]
 
 [project.urls]
